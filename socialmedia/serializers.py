@@ -1,0 +1,148 @@
+from django.contrib.auth import get_user_model
+from django.db import models
+from rest_framework import serializers
+from rest_framework.fields import BooleanField, CharField, ImageField, SerializerMethodField 
+
+from .models import Comment, Friend, FriendRequest, Like, Photos, Post, Share
+
+
+class SocialUserSerializer(serializers.ModelSerializer):
+    full_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = get_user_model() 
+        fields = ['id', 'profile_picture', 'full_name']
+
+    def get_full_name(self, obj):
+        return f'{obj.first_name} {obj.last_name}'
+
+
+class PostPhotoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Photos
+        fields = ['id', 'image_link']
+
+
+class PostLikesSerializer(serializers.ModelSerializer):
+    user = SocialUserSerializer()
+
+    class Meta:
+        model = Like
+        fields = ['id', 'user']
+
+
+class CreatePostLikeSerializer(serializers.ModelSerializer): 
+    id = serializers.ReadOnlyField()
+    user = SocialUserSerializer(read_only=True)
+
+    class Meta:
+        model = Like
+        fields = ['id', 'user']
+
+    def create(self, validated_data):
+        instance = Like(post_id=self.context['post_id'], user_id=self.context['user_id'])
+        instance.save()
+        return instance
+
+
+class PostCommentSerializer(serializers.ModelSerializer):
+    user = SocialUserSerializer()
+
+    class Meta:
+        model = Comment
+        fields = ['id', 'user', 'content']
+
+
+
+class CreateCommentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Comment
+        fields = ['content']
+
+    def create(self, validated_data):
+        comment = Comment(user_id=self.context['user_id'], post_id=self.context['post_id'] ,**validated_data)
+        comment.save()
+        return comment
+
+
+class PostSerializer(serializers.ModelSerializer):
+    photos = PostPhotoSerializer(many=True)
+    likes_count = serializers.IntegerField()
+    comments_count = serializers.IntegerField()
+    shares_count = serializers.IntegerField()
+
+    class Meta:
+        model = Post
+        fields = ['id', 'content', 'location' ,'user_id', 'photos', \
+             'likes_count', 'comments_count', 'shares_count']
+
+
+class PostShareSerializer(serializers.ModelSerializer):
+    user = SocialUserSerializer()
+    post = PostSerializer()
+
+    class Meta:
+        model = Share
+        fields = ['id', 'user', 'post', 'shared_content'] 
+
+
+class CreatePostShareSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Share
+        fields = ['shared_content']
+
+    def create(self, validated_data):
+        instance = Share(user_id=self.context['user_id'], \
+            post_id=self.context['post_id'], **validated_data)
+        instance.save()
+        return instance
+
+
+class PostCreateSerializer(serializers.ModelSerializer):
+    photos = ImageField()
+
+    class Meta:
+        model = Post
+        fields = ['content', 'location', 'photos']
+
+    def create(self, validated_data):
+        post = Post(user_id=self.context['user_id'], **validated_data)
+        post.save()
+        return post
+
+
+class FriendsSerializer(serializers.ModelSerializer):
+    account_id_1 = SocialUserSerializer(many=True)
+    account_id_2 = SocialUserSerializer(many=True)
+
+    class Meta:
+        model = Friend
+        fields = ['id', 'account_id_1', 'account_id_2', 'date_confirmed']
+
+
+class FriendRequestSerializer(serializers.ModelSerializer):
+    from_account = SocialUserSerializer()
+    to_account = SocialUserSerializer()
+
+    class Meta:
+        model = FriendRequest
+        fields = ['id', 'from_account', 'to_account', 'request_date']
+
+
+class SendFriendRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FriendRequest
+        fields = ['to_account']   
+
+    def create(self, validated_data):
+        instance = FriendRequest(from_account_id=self.context['from_account_id'], **validated_data)
+        instance.save()
+        return instance
+
+
+class AcceptOrRejectFriendRequestSerializer(serializers.ModelSerializer):  
+    class Meta:
+        model = FriendRequest
+        fields = ['id']
+ 
+        
