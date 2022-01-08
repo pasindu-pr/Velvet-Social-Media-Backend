@@ -23,7 +23,7 @@ class Post(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='posts', on_delete=CASCADE)
     content = models.TextField(null=True)
     location = models.TextField(null=True)
-    created_at = models.DateTimeField(default=datetime.now())
+    created_at = models.DateTimeField(auto_now_add=True)
 
 
 class Photos(models.Model):
@@ -46,3 +46,4 @@ class Share(models.Model):
     post = models.ForeignKey(Post, related_name='shares', on_delete=models.CASCADE)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='shares', on_delete=CASCADE)
     shared_content = models.TextField(null=True)
+    created_at = models.DateTimeField(auto_now_add=True)

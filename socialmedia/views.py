@@ -1,10 +1,10 @@
-from datetime import date
+from itertools import chain 
 
 from django.db import transaction
 from django.db.models.aggregates import Count
 from django.db.models.query import Prefetch
 from django.contrib.auth import get_user_model
-from rest_framework.decorators import authentication_classes
+from rest_framework.fields import FileField
 
 from core import models
 from .models import Comment, Friend, FriendRequest, Like, Post, Share 
@@ -14,37 +14,44 @@ from .serializers import CreateCommentSerializer, CreatePostLikeSerializer, \
     PostSerializer, PostShareSerializer, SendFriendRequestSerializer
 
 from rest_framework.views import APIView
-from rest_framework.viewsets import ModelViewSet, ViewSet
+from rest_framework.viewsets import GenericViewSet, ModelViewSet, ViewSet
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response 
-from rest_framework import serializers, status
+from rest_framework import status 
+from rest_framework.mixins import CreateModelMixin, \
+     DestroyModelMixin, ListModelMixin, RetrieveModelMixin
+
 import cloudinary
 
 class Timeline(ViewSet):
     
     def list(self, request):
-        posts = Post.objects\
-        .select_related('user') \
-        .prefetch_related('photos', 'likes', 'comments', 'shares').annotate(
-            likes_count=Count('likes'),
-            comments_count=Count('comments'),
-            shares_count=Count('shares')
-        ).all()
+        # Find current user's friends and convert get friends ids
+        friends_queryset = Friend.objects.filter(account_id_1=self.request.user.id)\
+                  .all() 
+        
+        user_friends = [item.account_id_2 for item in list(friends_queryset)] 
 
-        shared_posts = Share.objects.select_related('user')\
+        posts_queryset = Post.objects.filter(user_id__in=user_friends)\
+                .select_related('user')\
+                .prefetch_related('photos').annotate(likes_count=Count('likes'), comments_count=Count('comments'),
+                shares_count=Count('shares')).order_by('-created_at').all()
+               
+        shared_posts_queryset = Share.objects.filter(user_id__in=user_friends)\
+            .select_related('user')\
             .prefetch_related(
                 Prefetch('post', queryset=Post.objects.annotate(
                 likes_count=Count('likes'),
                 comments_count=Count('comments'),
                 shares_count=Count('shares'),
-            )), 'post__photos').all()
+            )), 'post__photos', 'post__user').all()
         
-        post_serializer = PostSerializer(posts, many=True)
+        post_serializer = PostSerializer(posts_queryset, many=True)
+        shared_posts_serializer = PostShareSerializer(shared_posts_queryset, many=True)
 
-        shared_posts_serializer = PostShareSerializer(shared_posts, many=True)
-        data = post_serializer.data + shared_posts_serializer.data
-        
-        return Response(data, status=status.HTTP_200_OK)
+        data = sorted(chain(post_serializer.data, shared_posts_serializer.data),key = lambda i: i['created_at'], reverse=True)  
+        return Response(data, status=status.HTTP_200_OK) 
+
 
 # Create your views here.
 class Posts(ModelViewSet):  
@@ -125,7 +132,14 @@ class PostShares(ModelViewSet):
     serializer_class = PostShareSerializer
 
     def get_queryset(self):
-        return Share.objects.prefetch_related('user', 'post').filter(post_id=self.kwargs['post_pk']).all()
+        return Share.objects.filter(post_id=self.kwargs['post_pk'])\
+            .select_related('user')\
+            .prefetch_related(
+                Prefetch('post', queryset=Post.objects.annotate(
+                likes_count=Count('likes'),
+                comments_count=Count('comments'),
+                shares_count=Count('shares'),
+            )), 'post__photos', 'post__user').all()
 
     def get_serializer_class(self):
         if self.request.method == 'POST':
@@ -139,19 +153,33 @@ class PostShares(ModelViewSet):
         }
 
 
-class Friends(ModelViewSet):
+class Friends(ListModelMixin, DestroyModelMixin, GenericViewSet):
     serializer_class = FriendsSerializer
     
     def get_queryset(self):
-        return Friend.objects.prefetch_related('account_id_1', 'account_id_2').all()
+        return Friend.objects.select_related('account_id_2')\
+        .filter(account_id_1=self.request.user.id).all()
+
+    def destroy(self, request, *args, **kwargs):
+        friend_query_set = Friend.objects.filter(id=kwargs['pk']).first()
+
+        # Find other user's friend and delete record
+        with transaction.atomic():
+            Friend.objects.filter(account_id_1=self.request.user.id, \
+                account_id_2=friend_query_set.account_id_2).delete()
+
+            Friend.objects.filter(account_id_1=friend_query_set.account_id_2, \
+                account_id_2=self.request.user.id).delete()
+
+        return Response(f'User unfriended successfully!')
 
 
-class FriendRequests(ModelViewSet):
+class FriendRequests(CreateModelMixin,ListModelMixin ,RetrieveModelMixin, DestroyModelMixin,GenericViewSet):
     serializer_class = FriendRequestSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return FriendRequest.objects.select_related('from_account','to_account').all()
+        return FriendRequest.objects.filter(to_account=self.request.user.id).select_related('from_account','to_account').all()
 
     def get_serializer_context(self):
         return {

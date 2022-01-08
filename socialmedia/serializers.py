@@ -70,11 +70,12 @@ class PostSerializer(serializers.ModelSerializer):
     likes_count = serializers.IntegerField()
     comments_count = serializers.IntegerField()
     shares_count = serializers.IntegerField()
+    user = SocialUserSerializer()
 
     class Meta:
         model = Post
-        fields = ['id', 'content', 'location' ,'user_id', 'photos', \
-             'likes_count', 'comments_count', 'shares_count']
+        fields = ['id', 'content', 'location' ,'user', 'photos', \
+             'likes_count', 'comments_count', 'shares_count', 'created_at']
 
 
 class PostShareSerializer(serializers.ModelSerializer):
@@ -83,7 +84,7 @@ class PostShareSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Share
-        fields = ['id', 'user', 'post', 'shared_content'] 
+        fields = ['id', 'user', 'post', 'shared_content', 'created_at'] 
 
 
 class CreatePostShareSerializer(serializers.ModelSerializer):
@@ -112,12 +113,11 @@ class PostCreateSerializer(serializers.ModelSerializer):
 
 
 class FriendsSerializer(serializers.ModelSerializer):
-    account_id_1 = SocialUserSerializer(many=True)
-    account_id_2 = SocialUserSerializer(many=True)
+    account_id_2 = SocialUserSerializer()
 
     class Meta:
         model = Friend
-        fields = ['id', 'account_id_1', 'account_id_2', 'date_confirmed']
+        fields = ['id', 'account_id_2', 'date_confirmed']
 
 
 class FriendRequestSerializer(serializers.ModelSerializer):
@@ -144,5 +144,3 @@ class AcceptOrRejectFriendRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = FriendRequest
         fields = ['id']
- 
-        
