@@ -45,10 +45,12 @@ INSTALLED_APPS = [
     'rest_framework',
     'djoser',
     "debug_toolbar",
-    'cloudinary'
+    'cloudinary',
+    'corsheaders'
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "debug_toolbar.middleware.DebugToolbarMiddleware",
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -167,3 +169,8 @@ INTERNAL_IPS = [
 ]
 
 CLOUDINARY_URL='cloudinary://my_key:my_secret@my_cloud_name?upload_prefix=myprefix.com'
+
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:4200"
+]

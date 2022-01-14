@@ -12,6 +12,7 @@ djoser = "*"
 djangorestframework-simplejwt = "*"
 django-debug-toolbar = "*"
 cloudinary = "*"
+django-cors-headers = "*"
 
 [dev-packages]
 
