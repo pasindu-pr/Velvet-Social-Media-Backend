@@ -39,16 +39,16 @@ class Timeline(ViewSet):
 
         posts_queryset = Post.objects.filter(user_id__in=user_friends)\
                 .select_related('user')\
-                .prefetch_related('photos', 'likes', 'likes__user').annotate(likes_count=Count('likes'), comments_count=Count('comments'),
-                shares_count=Count('shares')).order_by('-created_at').all()
+                .prefetch_related('photos', 'likes', 'likes__user').annotate(likes_count=Count('likes', distinct=True), comments_count=Count('comments',  distinct=True),
+                shares_count=Count('shares', distinct=True)).order_by('-created_at').all()
                
         shared_posts_queryset = Share.objects.filter(user_id__in=user_friends)\
             .select_related('user')\
             .prefetch_related(
                 Prefetch('post', queryset=Post.objects.annotate(
-                likes_count=Count('likes'),
-                comments_count=Count('comments'),
-                shares_count=Count('shares'),
+                likes_count=Count('likes', distinct=True),
+                comments_count=Count('comments', distinct=True),
+                shares_count=Count('shares', distinct=True),
             )), 'post__photos', 'post__user', 'post__likes', 'post__likes__user').annotate(
                 is_shared_post=Value(True), 
             ).all()
