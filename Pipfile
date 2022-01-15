@@ -13,6 +13,7 @@ djangorestframework-simplejwt = "*"
 django-debug-toolbar = "*"
 cloudinary = "*"
 django-cors-headers = "*"
+python-dotenv = "*"
 
 [dev-packages]
 

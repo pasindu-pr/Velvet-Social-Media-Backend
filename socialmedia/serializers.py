@@ -1,3 +1,5 @@
+from dataclasses import fields
+from re import T
 from django.contrib.auth import get_user_model
 from django.db import models
 from rest_framework import serializers
@@ -5,6 +7,7 @@ from rest_framework.fields import BooleanField, CharField, ImageField, Serialize
 
 from .models import Comment, Friend, FriendRequest, Like, Photos, Post, Share
 
+from cloudinary.models import CloudinaryField
 
 class SocialUserSerializer(serializers.ModelSerializer):
     full_name = serializers.SerializerMethodField()
@@ -70,21 +73,23 @@ class PostSerializer(serializers.ModelSerializer):
     likes_count = serializers.IntegerField()
     comments_count = serializers.IntegerField()
     shares_count = serializers.IntegerField()
-    user = SocialUserSerializer()
+    user = SocialUserSerializer() 
+    likes = PostLikesSerializer(many=True)
 
     class Meta:
         model = Post
         fields = ['id', 'content', 'location' ,'user', 'photos', \
-             'likes_count', 'comments_count', 'shares_count', 'created_at']
+             'likes', 'likes_count', 'comments_count', 'shares_count', 'created_at']
 
 
 class PostShareSerializer(serializers.ModelSerializer):
     user = SocialUserSerializer()
     post = PostSerializer()
+    is_shared_post = BooleanField()
 
     class Meta:
         model = Share
-        fields = ['id', 'user', 'post', 'shared_content', 'created_at'] 
+        fields = ['id', 'user', 'post', 'is_shared_post' ,'shared_content', 'created_at'] 
 
 
 class CreatePostShareSerializer(serializers.ModelSerializer):
@@ -144,3 +149,8 @@ class AcceptOrRejectFriendRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = FriendRequest
         fields = ['id']
+ 
+class PhotoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Photos
+        fields = ['id', 'image_link'] 

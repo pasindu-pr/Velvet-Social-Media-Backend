@@ -10,9 +10,13 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
+from dotenv import load_dotenv, find_dotenv
 from pathlib import Path
 from datetime import timedelta
+import cloudinary
+import os
 
+load_dotenv(find_dotenv())
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -174,3 +178,10 @@ CLOUDINARY_URL='cloudinary://my_key:my_secret@my_cloud_name?upload_prefix=mypref
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:4200"
 ]
+
+
+cloudinary.config(
+    cloud_name=os.environ.get('CLOUDINARY_NAME'),
+    api_key=os.environ.get('CLOUDINARY_API_KEY'),
+    api_secret=os.environ.get('CLOUDINARY_API_SECRET')
+)

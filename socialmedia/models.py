@@ -1,10 +1,9 @@
-from datetime import datetime
-import re
+from datetime import datetime 
 
 from django.db import models 
 from django.conf import settings
 from django.db.models.deletion import CASCADE
-from django.core.validators import MinLengthValidator
+from django.core.validators import MinLengthValidator 
 # Create your models here.   
 
 class Friend(models.Model): 

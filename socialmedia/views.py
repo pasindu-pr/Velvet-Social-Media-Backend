@@ -1,4 +1,6 @@
-from itertools import chain 
+from itertools import chain
+from django.db.models import Value, Case, When, BooleanField,Subquery
+from re import T 
 
 from django.db import transaction
 from django.db.models.aggregates import Count
@@ -7,9 +9,9 @@ from django.contrib.auth import get_user_model
 from rest_framework.fields import FileField
 
 from core import models
-from .models import Comment, Friend, FriendRequest, Like, Post, Share 
+from .models import Comment, Friend, FriendRequest, Like, Photos, Post, Share 
 from .serializers import CreateCommentSerializer, CreatePostLikeSerializer, \
-    CreatePostShareSerializer, FriendRequestSerializer, FriendsSerializer, \
+    CreatePostShareSerializer, FriendRequestSerializer, FriendsSerializer, PhotoSerializer, \
     PostCommentSerializer, PostCreateSerializer, PostLikesSerializer, \
     PostSerializer, PostShareSerializer, SendFriendRequestSerializer
 
@@ -21,9 +23,12 @@ from rest_framework import status
 from rest_framework.mixins import CreateModelMixin, \
      DestroyModelMixin, ListModelMixin, RetrieveModelMixin
 
-import cloudinary
+from cloudinary.uploader import upload as CloudinaryUpload
+
+from pprint import pprint
 
 class Timeline(ViewSet):
+    permission_classes = [IsAuthenticated]
     
     def list(self, request):
         # Find current user's friends and convert get friends ids
@@ -34,7 +39,7 @@ class Timeline(ViewSet):
 
         posts_queryset = Post.objects.filter(user_id__in=user_friends)\
                 .select_related('user')\
-                .prefetch_related('photos').annotate(likes_count=Count('likes'), comments_count=Count('comments'),
+                .prefetch_related('photos', 'likes', 'likes__user').annotate(likes_count=Count('likes'), comments_count=Count('comments'),
                 shares_count=Count('shares')).order_by('-created_at').all()
                
         shared_posts_queryset = Share.objects.filter(user_id__in=user_friends)\
@@ -44,26 +49,33 @@ class Timeline(ViewSet):
                 likes_count=Count('likes'),
                 comments_count=Count('comments'),
                 shares_count=Count('shares'),
-            )), 'post__photos', 'post__user').all()
+            )), 'post__photos', 'post__user', 'post__likes', 'post__likes__user').annotate(
+                is_shared_post=Value(True), 
+            ).all()
         
         post_serializer = PostSerializer(posts_queryset, many=True)
         shared_posts_serializer = PostShareSerializer(shared_posts_queryset, many=True)
 
         data = sorted(chain(post_serializer.data, shared_posts_serializer.data),key = lambda i: i['created_at'], reverse=True)  
+        # data = sorted(post_serializer.data, key = lambda i: i['created_at'], reverse=True)
         return Response(data, status=status.HTTP_200_OK) 
 
 
 # Create your views here.
-class Posts(ModelViewSet):  
-    queryset = Post.objects\
-        .select_related('user') \
-        .prefetch_related('photos')\
-        .annotate(
-            likes_count=Count('likes'),
-            comments_count=Count('comments'),
-            shares_count=Count('shares'),
-        )\
-        .all()
+class Posts(ModelViewSet):
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        queryset = Post.objects\
+            .select_related('user') \
+            .prefetch_related('photos', 'likes', 'likes__user')\
+            .annotate(
+                likes_count=Count('likes'),
+                comments_count=Count('comments'),
+                shares_count=Count('shares'),\
+            )\
+            .all()
+        return queryset
 
     def get_serializer_class(self):
         if self.request.method == 'POST':
@@ -77,12 +89,17 @@ class Posts(ModelViewSet):
         }
 
     def create(self, request, *args, **kwargs):
-        res = cloudinary.uploader.upload(self.request.FILES.getlist('photos')[0])
-        print(res)
-        return super().create(request, *args, **kwargs)
-
-    
-
+        with transaction.atomic():
+            res = CloudinaryUpload(self.request.FILES['photos'], folder="/VelvetSocialMedia/")
+            content = self.request.POST.get("content")
+            location = self.request.POST.get("content")  
+            post = Post(content=content, location=location, user_id=self.request.user.id)
+            post.save() 
+            photo = Photos(image_link=res['secure_url'], post_id=post.id) 
+            photo.save()
+            return Response({"message": "Post created successfully!"}, status=status.HTTP_201_CREATED)
+ 
+     
 class PostLikes(ModelViewSet):
     permission_classes = [IsAuthenticated]
 
@@ -151,6 +168,14 @@ class PostShares(ModelViewSet):
             'user_id': self.request.user.id,
             'post_id': self.kwargs['post_pk']
         }
+
+
+class PostPhotos(ListModelMixin, GenericViewSet): 
+    def get_serializer_class(self): 
+        return PhotoSerializer
+
+    def get_queryset(self): 
+        return Photos.objects.filter(post_id=self.kwargs['post_pk']).all();
 
 
 class Friends(ListModelMixin, DestroyModelMixin, GenericViewSet):

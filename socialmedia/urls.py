@@ -1,5 +1,5 @@
 from django.db.models import base
-from .views import FriendRequests, Friends, PostComments, PostLikes, Posts, PostShares, Timeline
+from .views import FriendRequests, Friends, PostComments, PostLikes, PostPhotos, Posts, PostShares, Timeline
 from django.urls import path 
 from rest_framework_nested import routers
 
@@ -19,4 +19,8 @@ comments_router.register('comments', PostComments, basename='comments')
 share_router = routers.NestedDefaultRouter(router, parent_prefix='posts', lookup='post')
 share_router.register('shares', PostShares, basename='shares')
 
-urlpatterns = router.urls + likes_router.urls + comments_router.urls + share_router.urls
+photos_router = routers.NestedDefaultRouter(router, parent_prefix='posts', lookup='post')
+photos_router.register('photos', PostPhotos, basename='photos')
+
+urlpatterns = router.urls + likes_router.urls + comments_router.urls +\
+     share_router.urls + photos_router.urls

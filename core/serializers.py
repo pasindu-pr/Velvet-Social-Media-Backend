@@ -12,4 +12,4 @@ class UserCreateSerializer(BaseUserRegisterSerializer):
 class CurrentUserSerializer(BaseCurrentUserSerializer):
     class Meta:
         model = get_user_model()
-        fields = ['first_name', 'last_name', 'email', 'birthdate', 'location']
+        fields = ['id','first_name', 'last_name', 'email', 'birthdate', 'location', 'profile_picture']
