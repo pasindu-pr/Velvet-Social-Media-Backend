@@ -82,7 +82,7 @@ class PostSerializer(serializers.ModelSerializer):
              'likes', 'likes_count', 'comments_count', 'shares_count', 'created_at']
 
 
-class PostShareSerializer(serializers.ModelSerializer):
+class TimelinePostShareSerializer(serializers.ModelSerializer):
     user = SocialUserSerializer()
     post = PostSerializer()
     is_shared_post = BooleanField()
@@ -90,6 +90,14 @@ class PostShareSerializer(serializers.ModelSerializer):
     class Meta:
         model = Share
         fields = ['id', 'user', 'post', 'is_shared_post' ,'shared_content', 'created_at'] 
+
+
+class PostShareSerializer(serializers.ModelSerializer):
+    user = SocialUserSerializer()
+    post = PostSerializer() 
+    class Meta:
+        model = Share
+        fields = ['id', 'user', 'post','shared_content', 'created_at'] 
 
 
 class CreatePostShareSerializer(serializers.ModelSerializer):
