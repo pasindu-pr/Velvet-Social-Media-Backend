@@ -13,7 +13,8 @@ from .models import Comment, Friend, FriendRequest, Like, Photos, Post, Share
 from .serializers import CreateCommentSerializer, CreatePostLikeSerializer, \
     CreatePostShareSerializer, FriendRequestSerializer, FriendsSerializer, PhotoSerializer, \
     PostCommentSerializer, PostCreateSerializer, PostLikesSerializer, \
-    PostSerializer, PostShareSerializer, SendFriendRequestSerializer
+    PostSerializer, PostShareSerializer, SendFriendRequestSerializer,\
+        TimelinePostShareSerializer
 
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet, ModelViewSet, ViewSet
@@ -54,7 +55,7 @@ class Timeline(ViewSet):
             ).all()
         
         post_serializer = PostSerializer(posts_queryset, many=True)
-        shared_posts_serializer = PostShareSerializer(shared_posts_queryset, many=True)
+        shared_posts_serializer = TimelinePostShareSerializer(shared_posts_queryset, many=True)
 
         data = sorted(chain(post_serializer.data, shared_posts_serializer.data),key = lambda i: i['created_at'], reverse=True)  
         # data = sorted(post_serializer.data, key = lambda i: i['created_at'], reverse=True)
