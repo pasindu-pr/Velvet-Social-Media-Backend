@@ -142,6 +142,7 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# To override default user class
 AUTH_USER_MODEL = 'core.User'
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_EMAIL_REQUIRED = True
@@ -160,6 +161,7 @@ SIMPLE_JWT = {
    'ACCESS_TOKEN_LIFETIME': timedelta(days=3),
 }
 
+# To override default user serializers
 DJOSER = {
     'LOGIN_FIELD': 'email', 
      'SERIALIZERS': {

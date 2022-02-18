@@ -6,16 +6,18 @@ from django.db import transaction
 from django.db.models.aggregates import Count
 from django.db.models.query import Prefetch
 from django.contrib.auth import get_user_model
+from markupsafe import re
 from rest_framework.fields import FileField
 
 from core import models
-from .models import Comment, Friend, FriendRequest, Like, Photos, Post, Share 
+from .models import Comment, Friend, FriendRequest, Like, Photos, Post, Share, TemporayImages 
 from .serializers import CreateCommentSerializer, CreatePostLikeSerializer, \
     CreatePostShareSerializer, FriendRequestSerializer, FriendsSerializer, PhotoSerializer, \
     PostCommentSerializer, PostCreateSerializer, PostLikesSerializer, \
     PostSerializer, PostShareSerializer, SendFriendRequestSerializer,\
         TimelinePostShareSerializer
 
+from rest_framework.decorators import api_view
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet, ModelViewSet, ViewSet
 from rest_framework.permissions import IsAuthenticated
@@ -262,3 +264,14 @@ class FriendRequests(CreateModelMixin,ListModelMixin ,RetrieveModelMixin, Destro
             return Response({'message': 'Request Deleted Successfully'}, status=status.HTTP_204_NO_CONTENT)
         else:
             return Response({'message': 'Status of friend request not found!'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["POST"])
+def upload_images_to_cloudinary(request):
+    if request.method == "POST":
+        res = CloudinaryUpload(request.FILES['photos'], folder="/VelvetSocialMedia/")
+        photo = TemporayImages(image_link=res['secure_url'])
+        photo.save()
+        return Response({"image": photo.image_link}, status=status.HTTP_201_CREATED)
+    else:
+        return Response({"message": "Method not allowed"})

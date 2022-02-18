@@ -1,5 +1,6 @@
+from xml.etree.ElementInclude import include
 from django.db.models import base
-from .views import FriendRequests, Friends, PostComments, PostLikes, PostPhotos, Posts, PostShares, Timeline
+from .views import FriendRequests, Friends, PostComments, PostLikes, PostPhotos, Posts, PostShares, Timeline, upload_images_to_cloudinary
 from django.urls import path 
 from rest_framework_nested import routers
 
@@ -22,5 +23,6 @@ share_router.register('shares', PostShares, basename='shares')
 photos_router = routers.NestedDefaultRouter(router, parent_prefix='posts', lookup='post')
 photos_router.register('photos', PostPhotos, basename='photos')
 
-urlpatterns = router.urls + likes_router.urls + comments_router.urls +\
-     share_router.urls + photos_router.urls
+urlpatterns = [
+     path("image_upload/", upload_images_to_cloudinary)
+]  
