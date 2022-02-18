@@ -20,8 +20,8 @@ class FriendRequest(models.Model):
 
 class Post(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='posts', on_delete=CASCADE)
-    content = models.TextField(null=True)
-    location = models.TextField(null=True)
+    content = models.TextField(null=True, blank=True)
+    location = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
 
@@ -47,3 +47,7 @@ class Share(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='shares', on_delete=CASCADE)
     shared_content = models.TextField(null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+class TemporayImages(models.Model):
+    image_link = models.URLField()
