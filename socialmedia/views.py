@@ -92,14 +92,15 @@ class Posts(ModelViewSet):
         }
 
     def create(self, request, *args, **kwargs):
+        print(self.request.data)
         with transaction.atomic():
-            res = CloudinaryUpload(self.request.FILES['photos'], folder="/VelvetSocialMedia/")
-            content = self.request.POST.get("content")
-            location = self.request.POST.get("content")  
+            content = self.request.data.get("content")
+            location = self.request.data.get("location")  
             post = Post(content=content, location=location, user_id=self.request.user.id)
             post.save() 
-            photo = Photos(image_link=res['secure_url'], post_id=post.id) 
-            photo.save()
+            if(self.request.data.get("image")):
+                photo = Photos(image_link=self.request.data.get("image"), post_id=post.id) 
+                photo.save()
             return Response({"message": "Post created successfully!"}, status=status.HTTP_201_CREATED)
  
      
@@ -269,7 +270,8 @@ class FriendRequests(CreateModelMixin,ListModelMixin ,RetrieveModelMixin, Destro
 @api_view(["POST"])
 def upload_images_to_cloudinary(request):
     if request.method == "POST":
-        res = CloudinaryUpload(request.FILES['photos'], folder="/VelvetSocialMedia/")
+        photos = request.data.get('photos') 
+        res = CloudinaryUpload(photos, folder="/VelvetSocialMedia/")
         photo = TemporayImages(image_link=res['secure_url'])
         photo.save()
         return Response({"image": photo.image_link}, status=status.HTTP_201_CREATED)

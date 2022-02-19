@@ -25,4 +25,4 @@ photos_router.register('photos', PostPhotos, basename='photos')
 
 urlpatterns = [
      path("image_upload/", upload_images_to_cloudinary)
-]  
+]  + router.urls + likes_router.urls + comments_router.urls + share_router.urls + photos_router.urls

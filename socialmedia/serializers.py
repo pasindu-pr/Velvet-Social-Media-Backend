@@ -2,6 +2,7 @@ from dataclasses import fields
 from re import T
 from django.contrib.auth import get_user_model
 from django.db import models
+from rest_framework.serializers import URLField
 from rest_framework import serializers
 from rest_framework.fields import BooleanField, CharField, ImageField, SerializerMethodField 
 
@@ -113,11 +114,11 @@ class CreatePostShareSerializer(serializers.ModelSerializer):
 
 
 class PostCreateSerializer(serializers.ModelSerializer):
-    photos = ImageField()
+    image = URLField()
 
     class Meta:
         model = Post
-        fields = ['content', 'location', 'photos']
+        fields = ['content', 'location', 'image']
 
     def create(self, validated_data):
         post = Post(user_id=self.context['user_id'], **validated_data)
