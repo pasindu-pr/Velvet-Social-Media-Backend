@@ -101,7 +101,8 @@ class Posts(ModelViewSet):
             if(self.request.data.get("image")):
                 photo = Photos(image_link=self.request.data.get("image"), post_id=post.id) 
                 photo.save()
-            return Response({"message": "Post created successfully!"}, status=status.HTTP_201_CREATED)
+            return Response({"post": {"message": "Post created successfully!", 
+                              "postid": post.id  }}, status=status.HTTP_201_CREATED)
  
      
 class PostLikes(ModelViewSet):
