@@ -179,7 +179,7 @@ class CurrentUserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = get_user_model()
         fields = ['id', 'first_name', 'last_name', 'location', 'profile_picture', \
-            'website', 'description', 'friends', 'photos', 'shares', 'posts']
+            'website', 'description', 'friends', 'photos', 'posts']
 
     def get_posts(self, obj): 
         shared_posts_serializer = TimelinePostShareSerializer(Share.objects.filter(user_id=self.context['user_id'])\
