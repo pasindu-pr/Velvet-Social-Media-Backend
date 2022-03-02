@@ -12,7 +12,7 @@ from rest_framework.fields import FileField
 from core import models
 from .models import Comment, Friend, FriendRequest, Like, Photos, Post, Share, TemporayImages 
 from .serializers import CreateCommentSerializer, CreatePostLikeSerializer, \
-    CreatePostShareSerializer, FriendRequestSerializer, FriendsSerializer, PhotoSerializer, \
+    CreatePostShareSerializer, CurrentUserProfileSerializer, FriendRequestSerializer, FriendsSerializer, PhotoSerializer, \
     PostCommentSerializer, PostCreateSerializer, PostLikesSerializer, \
     PostSerializer, PostShareSerializer, SendFriendRequestSerializer,\
         TimelinePostShareSerializer
@@ -265,6 +265,14 @@ class FriendRequests(CreateModelMixin,ListModelMixin ,RetrieveModelMixin, Destro
             return Response({'message': 'Request Deleted Successfully'}, status=status.HTTP_204_NO_CONTENT)
         else:
             return Response({'message': 'Status of friend request not found!'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CurrentUserProfile(APIView):
+    def get(self, request, format=None):
+        user = self.request.user
+        serializer = CurrentUserProfileSerializer(user, \
+             context={'user_id': self.request.user.id})
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @api_view(["POST"])

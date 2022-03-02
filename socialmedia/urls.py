@@ -1,6 +1,6 @@
 from xml.etree.ElementInclude import include
 from django.db.models import base
-from .views import FriendRequests, Friends, PostComments, PostLikes, PostPhotos, Posts, PostShares, Timeline, upload_images_to_cloudinary
+from .views import CurrentUserProfile, FriendRequests, Friends, PostComments, PostLikes, PostPhotos, Posts, PostShares, Timeline, upload_images_to_cloudinary
 from django.urls import path 
 from rest_framework_nested import routers
 
@@ -24,5 +24,6 @@ photos_router = routers.NestedDefaultRouter(router, parent_prefix='posts', looku
 photos_router.register('photos', PostPhotos, basename='photos')
 
 urlpatterns = [
-     path("image_upload/", upload_images_to_cloudinary)
+     path("image_upload/", upload_images_to_cloudinary),
+     path("current-profile/", CurrentUserProfile.as_view())
 ]  + router.urls + likes_router.urls + comments_router.urls + share_router.urls + photos_router.urls

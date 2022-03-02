@@ -1,7 +1,13 @@
 from dataclasses import fields
+from datetime import date
+from itertools import chain
+from pyexpat import model
 from re import T
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.db.models import Value
+from django.db.models.aggregates import Count
+from django.db.models.query import Prefetch
 from rest_framework.serializers import URLField
 from rest_framework import serializers
 from rest_framework.fields import BooleanField, CharField, ImageField, SerializerMethodField 
@@ -163,3 +169,37 @@ class PhotoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Photos
         fields = ['id', 'image_link'] 
+
+
+class CurrentUserProfileSerializer(serializers.ModelSerializer):
+    friends = serializers.SerializerMethodField() 
+    photos = PhotoSerializer(many=True) 
+    posts = serializers.SerializerMethodField()
+
+    class Meta:
+        model = get_user_model()
+        fields = ['id', 'first_name', 'last_name', 'location', 'profile_picture', \
+            'website', 'description', 'friends', 'photos', 'shares', 'posts']
+
+    def get_posts(self, obj): 
+        shared_posts_serializer = TimelinePostShareSerializer(Share.objects.filter(user_id=self.context['user_id'])\
+            .select_related('user')\
+            .prefetch_related(
+                Prefetch('post', queryset=Post.objects.annotate(
+                likes_count=Count('likes', distinct=True),
+                comments_count=Count('comments', distinct=True),
+                shares_count=Count('shares', distinct=True),
+            )), 'post__photos', 'post__user', 'post__likes', 'post__likes__user').annotate(
+                is_shared_post=Value(True), 
+            ).all() , many=True)
+
+
+        post_serializer = PostSerializer(Post.objects.filter(user_id=self.context['user_id']).select_related('user')\
+                .prefetch_related('photos', 'likes', 'likes__user').annotate(likes_count=Count('likes', distinct=True), comments_count=Count('comments',  distinct=True),
+                shares_count=Count('shares', distinct=True)).order_by('-created_at').all(), many=True)
+
+        data = sorted(chain(post_serializer.data, shared_posts_serializer.data),key = lambda i: i['created_at'], reverse=True)  
+        return data
+
+    def get_friends(self, obj):
+        return Friend.objects.filter(account_id_1=self.context['user_id']).count()
