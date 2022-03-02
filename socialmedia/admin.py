@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Comment, Like, Post, Share
+from .models import Comment, Like, Photos, Post, Share
 # Register your models here.
 
 @admin.register(Post)
@@ -20,3 +20,7 @@ class ShareAdmin(admin.ModelAdmin):
 @admin.register(Comment)
 class CommentAdmin(admin.ModelAdmin):
     list_display = ['id' ,'post_id']
+
+@admin.register(Photos)
+class PhotoAdmin(admin.ModelAdmin):
+    list_display = ['id', 'image_link', 'post', 'user']

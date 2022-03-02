@@ -28,6 +28,7 @@ class Post(models.Model):
 class Photos(models.Model):
     image_link = models.URLField()
     post = models.ForeignKey(Post, on_delete=CASCADE, related_name='photos')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True ,related_name='photos', on_delete=CASCADE)
 
 
 class Like(models.Model):

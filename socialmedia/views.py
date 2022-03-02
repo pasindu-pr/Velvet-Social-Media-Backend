@@ -91,15 +91,14 @@ class Posts(ModelViewSet):
             'user_id': self.request.user.id, 
         }
 
-    def create(self, request, *args, **kwargs):
-        print(self.request.data)
+    def create(self, request, *args, **kwargs): 
         with transaction.atomic():
             content = self.request.data.get("content")
             location = self.request.data.get("location")  
             post = Post(content=content, location=location, user_id=self.request.user.id)
             post.save() 
             if(self.request.data.get("image")):
-                photo = Photos(image_link=self.request.data.get("image"), post_id=post.id) 
+                photo = Photos(image_link=self.request.data.get("image"), post_id=post.id, user_id=self.request.user.id) 
                 photo.save()
             return Response({"post": {"message": "Post created successfully!", 
                               "postid": post.id  }}, status=status.HTTP_201_CREATED)
