@@ -29,6 +29,8 @@ class User(AbstractUser):
     birthdate = models.DateField(null=True)
     profile_picture = models.URLField(null=True)
     location = models.CharField(max_length=255, null=True) 
+    description = models.TextField(blank=True, null=True)
+    website = models.CharField(max_length=255, null=True, blank=True)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
