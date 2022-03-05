@@ -1,6 +1,6 @@
 from xml.etree.ElementInclude import include
 from django.db.models import base
-from .views import CurrentUserProfile, FriendRequests, Friends, PostComments, PostLikes, PostPhotos, Posts, PostShares, Timeline, upload_images_to_cloudinary
+from .views import CurrentUserProfile, FriendRequests, Friends, PostComments, PostLikes, PostPhotos, Posts, PostShares, RandomUsers, Timeline, upload_images_to_cloudinary
 from django.urls import path 
 from rest_framework_nested import routers
 
@@ -10,6 +10,7 @@ router.register('timeline', viewset=Timeline,basename='timeline')
 router.register('posts', Posts, basename='Posts')
 router.register('friends', Friends, basename='friends')
 router.register('friends-requests', FriendRequests, basename='friends-requests')
+router.register('random-users', RandomUsers, basename='random-users')
 
 likes_router = routers.NestedDefaultRouter(router, parent_prefix='posts', lookup='post') 
 likes_router.register('likes',PostLikes, basename='likes')

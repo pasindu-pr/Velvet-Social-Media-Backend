@@ -14,7 +14,7 @@ from .models import Comment, Friend, FriendRequest, Like, Photos, Post, Share, T
 from .serializers import CreateCommentSerializer, CreatePostLikeSerializer, \
     CreatePostShareSerializer, CurrentUserProfileSerializer, FriendRequestSerializer, FriendsSerializer, PhotoSerializer, \
     PostCommentSerializer, PostCreateSerializer, PostLikesSerializer, \
-    PostSerializer, PostShareSerializer, SendFriendRequestSerializer,\
+    PostSerializer, PostShareSerializer, SendFriendRequestSerializer, SocialUserSerializer,\
         TimelinePostShareSerializer
 
 from rest_framework.decorators import api_view
@@ -273,6 +273,16 @@ class CurrentUserProfile(APIView):
         serializer = CurrentUserProfileSerializer(user, \
              context={'user_id': self.request.user.id})
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class RandomUsers(ListModelMixin, GenericViewSet):
+    serializer_class = SocialUserSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        friends = Friend.objects\
+            .filter(account_id_1=self.request.user.id).values('account_id_2')
+        return get_user_model().objects.exclude(id__in=friends) 
 
 
 @api_view(["POST"])
