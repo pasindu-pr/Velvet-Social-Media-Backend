@@ -200,7 +200,7 @@ class Friends(ListModelMixin, DestroyModelMixin, GenericViewSet):
             Friend.objects.filter(account_id_1=friend_query_set.account_id_2, \
                 account_id_2=self.request.user.id).delete()
 
-        return Response(f'User unfriended successfully!')
+        return Response(f'User unfriended successfully!', status=status.HTTP_204_NO_CONTENT)
 
 
 class FriendRequests(CreateModelMixin,ListModelMixin ,RetrieveModelMixin, DestroyModelMixin,GenericViewSet):
