@@ -12,7 +12,7 @@ from rest_framework.fields import FileField
 from core import models
 from .models import Comment, Friend, FriendRequest, Like, Photos, Post, Share, TemporayImages 
 from .serializers import CreateCommentSerializer, CreatePostLikeSerializer, \
-    CreatePostShareSerializer, CurrentUserProfileSerializer, FriendRequestSerializer, FriendsSerializer, PhotoSerializer, \
+    CreatePostShareSerializer, UserProfileDetailsSerializer, FriendRequestSerializer, FriendsSerializer, PhotoSerializer, \
     PostCommentSerializer, PostCreateSerializer, PostLikesSerializer, \
     PostSerializer, PostShareSerializer, SendFriendRequestSerializer, SocialUserSerializer,\
         TimelinePostShareSerializer
@@ -268,11 +268,23 @@ class FriendRequests(CreateModelMixin,ListModelMixin ,RetrieveModelMixin, Destro
 
 
 class CurrentUserProfile(APIView):
+    permission_classes = [IsAuthenticated]
+    
     def get(self, request, format=None):
         user = self.request.user
-        serializer = CurrentUserProfileSerializer(user, \
+        serializer = UserProfileDetailsSerializer(user, \
              context={'user_id': self.request.user.id})
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+class UserDetails(RetrieveModelMixin, GenericViewSet):
+    serializer_class = UserProfileDetailsSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return get_user_model().objects.all()
+
+    def get_serializer_context(self):
+        return {'user_id': self.kwargs['pk']}
 
 
 class RandomUsers(ListModelMixin, GenericViewSet):

@@ -171,7 +171,7 @@ class PhotoSerializer(serializers.ModelSerializer):
         fields = ['id', 'image_link'] 
 
 
-class CurrentUserProfileSerializer(serializers.ModelSerializer):
+class UserProfileDetailsSerializer(serializers.ModelSerializer):
     friends = serializers.SerializerMethodField() 
     photos = PhotoSerializer(many=True) 
     posts = serializers.SerializerMethodField()
@@ -202,4 +202,4 @@ class CurrentUserProfileSerializer(serializers.ModelSerializer):
         return data
 
     def get_friends(self, obj):
-        return Friend.objects.filter(account_id_1=self.context['user_id']).count()
+            return Friend.objects.filter(account_id_1=self.context['user_id']).count()
