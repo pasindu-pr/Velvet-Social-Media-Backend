@@ -279,10 +279,20 @@ class RandomUsers(ListModelMixin, GenericViewSet):
     serializer_class = SocialUserSerializer
     permission_classes = [IsAuthenticated]
 
-    def get_queryset(self):
+    def get_queryset(self): 
         friends = Friend.objects\
             .filter(account_id_1=self.request.user.id).values('account_id_2')
-        return get_user_model().objects.exclude(id__in=friends) 
+        sent_friend_requests = FriendRequest.objects.filter(from_account_id=self.request.user.id)\
+            .values('to_account_id')
+        recieved_friend_requests = FriendRequest.objects.filter(to_account_id=self.request.user.id)\
+            .values('from_account_id')
+        friends_and_requested_people_ids = [friend['account_id_2'] for friend in list(friends)]
+        for request in list(sent_friend_requests):
+            friends_and_requested_people_ids.append(request['to_account_id'])
+        for recieved_request in list(recieved_friend_requests):
+            friends_and_requested_people_ids.append(recieved_request['from_account_id'])
+        friends_and_requested_people_ids.append(self.request.user.id) 
+        return get_user_model().objects.exclude(id__in=friends_and_requested_people_ids) 
 
 
 @api_view(["POST"])

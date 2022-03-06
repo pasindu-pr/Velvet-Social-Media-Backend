@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Comment, Friend, Like, Photos, Post, Share
+from .models import Comment, Friend, FriendRequest, Like, Photos, Post, Share
 # Register your models here.
 
 @admin.register(Post)
@@ -28,3 +28,7 @@ class PhotoAdmin(admin.ModelAdmin):
 @admin.register(Friend)
 class FriendAdmin(admin.ModelAdmin):
     list_display = ['id', 'account_id_1','account_id_2', 'date_confirmed']
+
+@admin.register(FriendRequest)
+class FriendRequestAdmin(admin.ModelAdmin):
+    list_display = ['id', 'from_account', 'to_account','request_date']
