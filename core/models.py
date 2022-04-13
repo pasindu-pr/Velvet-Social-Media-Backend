@@ -5,7 +5,7 @@ from django.db.models import CharField
 
 class UserManager(BaseUserManager):
     def create_user(self, first_name, last_name, \
-         email, birthdate, password, location):
+         email, birthdate, password, profile_picture, location):
         if not email:
             raise ValueError('Users must have an email address')
 
@@ -14,7 +14,8 @@ class UserManager(BaseUserManager):
             birthdate=birthdate,
             first_name=first_name,
             last_name=last_name,
-            location=location
+            location=location,
+            profile_picture=profile_picture
         )
 
         user.set_password(password)
