@@ -4,6 +4,25 @@ from django.db.models import CharField
 
 
 class UserManager(BaseUserManager):
+    def create_superuser(self, \
+         email, password):
+        """
+        Creates and saves a superuser with the given email, date of
+        birth and password.
+        """
+        user = self.model(
+            email=self.normalize_email(email), 
+        )
+
+        user.set_password(password)
+        user.is_admin = True 
+        user.is_active = True
+        user.is_staff = True
+        user.is_superuser = True
+
+        user.save(using=self._db)
+        return user
+
     def create_user(self, first_name, last_name, \
          email, birthdate, password, profile_picture, location):
         if not email:
