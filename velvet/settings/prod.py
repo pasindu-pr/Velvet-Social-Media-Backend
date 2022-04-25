@@ -14,4 +14,4 @@ CORS_ALLOWED_ORIGINS = [
     os.getenv("FRONTEND_URL")
 ]
 
-ALLOWED_HOSTS = [os.getenv("FRONTEND_URL")]
+ALLOWED_HOSTS = [os.getenv("HOST_NAME")]
