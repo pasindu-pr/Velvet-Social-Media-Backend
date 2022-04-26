@@ -2,7 +2,7 @@ from xml.etree.ElementInclude import include
 from django.db.models import base
 from .views import CurrentUserProfile, FriendRequests, Friends, PostComments, \
       PostLikes, PostPhotos, Posts, PostShares, RandomUsers, Timeline, UserDetails, \
-     upload_images_to_cloudinary
+     upload_images_to_cloudinary, FetchLocations
 from django.urls import path 
 from rest_framework_nested import routers
 
@@ -29,5 +29,6 @@ photos_router.register('photos', PostPhotos, basename='photos')
 
 urlpatterns = [
      path("image_upload/", upload_images_to_cloudinary),
+     path("locations/<location>", FetchLocations.as_view()),
      path("current-profile/", CurrentUserProfile.as_view())
 ]  + router.urls + likes_router.urls + comments_router.urls + share_router.urls + photos_router.urls

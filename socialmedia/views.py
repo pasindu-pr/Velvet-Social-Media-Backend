@@ -1,6 +1,8 @@
 from itertools import chain
 from django.db.models import Value, Case, When, BooleanField,Subquery
 from re import T 
+import requests
+import os
 
 from django.db import transaction
 from django.db.models.aggregates import Count
@@ -317,3 +319,13 @@ def upload_images_to_cloudinary(request):
         return Response({"image": photo.image_link}, status=status.HTTP_201_CREATED)
     else:
         return Response({"message": "Method not allowed"})
+
+
+class FetchLocations(APIView):
+    def get(self, request, location ,format=None):
+        """
+        Return a list of locations fetched from api.
+        """
+        api_key = os.getenv("LOCATIONS_API_KEY")
+        r = requests.get(f'http://api.geonames.org/searchJSON?q={location}&maxRows=10&username={api_key}')
+        return Response(r.json())
